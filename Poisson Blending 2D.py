@@ -6,6 +6,7 @@ from pyamg.gallery import poisson
 from pyamg import ruge_stuben_solver
 import matplotlib.pyplot as plt
 from skimage.draw import polygon
+import scipy.sparse as sp
 
 
 def getImagePathFromUser(msg):
@@ -149,8 +150,11 @@ def buildLinearSystem(mask, srcImg, dstUnderSrc, mixedGrad):
 
 
 def solveLinearSystem(a, b, bShape):
-    multiLevel = ruge_stuben_solver(csr_matrix(a))
-    x = np.reshape((multiLevel.solve(b.flatten(), tol=1e-10)), bShape)
+    # multiLevel = ruge_stuben_solver(csr_matrix(a))
+
+    # x = np.reshape((multiLevel.solve(b.flatten(), tol=1e-10)), bShape)
+    x = np.reshape(sp.linalg.cgs(a, b.flatten())[0], bShape)
+    # this code should be included
     x[x < 0] = 0
     x[x > 255] = 255
     return x
