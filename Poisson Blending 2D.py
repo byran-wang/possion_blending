@@ -113,9 +113,9 @@ def setBoundaryCondition(b, dstUnderSrc):
 
 def constructConstVector(mask, mixedGrad, dstUnderSrc, srcLaplacianed, srcShp):
     dstLaplacianed = laplacian(dstUnderSrc)
-    b = np.reshape((1 - mixedGrad) * mask * np.reshape(srcLaplacianed, srcShp) +
-                   mixedGrad * mask * np.reshape(dstLaplacianed, srcShp) +
-                   (mask - 1) * (- 1) * np.reshape(dstLaplacianed, srcShp), srcShp)
+    b = np.reshape(mask * np.reshape(srcLaplacianed, srcShp) +
+                   (1 - mask) * np.reshape(dstLaplacianed, srcShp), srcShp)
+    # b = np.reshape(dstLaplacianed, srcShp)
     return setBoundaryCondition(b, dstUnderSrc)
 
 
@@ -211,7 +211,7 @@ def main():
     srcRgbCropped = cropImageByLimits(srcRgb, *maskLimits)
     dstImgPth, dstRgb = getImageFromUser('./target.jpg', srcRgbCropped[0].shape)
     corner = topLeftCornerOfSrcOnDst(dstImgPth, srcRgbCropped[0].shape)
-    poissonBlended, naiveBlended = poissonAndNaiveBlending(mask, corner, srcRgbCropped, dstRgb, 0.3)
+    poissonBlended, naiveBlended = poissonAndNaiveBlending(mask, corner, srcRgbCropped, dstRgb, 0.)
     mergeSaveShow(naiveBlended, 'Naive Blended')
     mergeSaveShow(poissonBlended, 'Poisson Blended')
 
