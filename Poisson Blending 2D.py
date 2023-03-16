@@ -7,8 +7,11 @@ from pyamg import ruge_stuben_solver
 import matplotlib.pyplot as plt
 from skimage.draw import polygon
 import scipy.sparse as sp
+import cv2
 
-
+laplacian_operator = np.array([[0, 1, 0],
+                               [1, -4, 1],
+                               [0, 1, 0]])
 def getImagePathFromUser(msg):
     tkinter.Tk().withdraw()
     return tkinter.filedialog.askopenfilename(title=msg)
@@ -99,7 +102,9 @@ def cropDstUnderSrc(dstImg, corner, srcShp):
 
     # return poisson(array.shape, format='csr') * csr_matrix(array.flatten()).transpose().toarray()
 def laplacian(array):
-    return buildA(array.shape) * csr_matrix(array.flatten()).transpose().toarray()
+    return cv2.filter2D(array.astype(np.float64), -1, laplacian_operator, borderType=cv2.BORDER_CONSTANT).reshape((-1,1))
+
+    # return buildA(array.shape) * csr_matrix(array.flatten()).transpose().toarray()
 
 def setBoundaryCondition(b, dstUnderSrc):
     b[1, :] = dstUnderSrc[1, :]
@@ -197,7 +202,7 @@ def poissonAndNaiveBlending(mask, corner, srcRgb, dstRgb, mixedGrad):
         a, b = buildLinearSystem(mask, src, dstUnderSrc, mixedGrad)
         x = solveLinearSystem(a, b, b.shape)
         poissonBlended = blend(dst, x, (corner[0] + 1, corner[1] + 1), b.shape, poissonBlended)
-        cropSrc = mask * src + (mask - 1) * (- 1) * dstUnderSrc
+        cropSrc = mask * src + (1 - mask) * dstUnderSrc
         naiveBlended = blend(dst, cropSrc, corner, src.shape, naiveBlended)
     return poissonBlended, naiveBlended
 
