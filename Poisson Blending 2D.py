@@ -168,7 +168,8 @@ def solveLinearSystem(a, b, bShape):
     # multiLevel = ruge_stuben_solver(csr_matrix(a))
 
     # x = np.reshape((multiLevel.solve(b.flatten(), tol=1e-10)), bShape)
-    x = np.reshape(sp.linalg.cgs(a, b.flatten())[0], bShape)
+    # x = np.reshape(sp.linalg.cgs(a, b.flatten())[0], bShape)
+    x = np.reshape(np.linalg.solve(a.A, b.flatten()), bShape) # a bit lower than sp.linalg.cgs
     # this code should be included
     x[x < 0] = 0
     x[x > 255] = 255
