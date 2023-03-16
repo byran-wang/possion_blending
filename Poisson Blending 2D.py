@@ -97,10 +97,9 @@ def cropDstUnderSrc(dstImg, corner, srcShp):
     return dstUnderSrc
 
 
+    # return poisson(array.shape, format='csr') * csr_matrix(array.flatten()).transpose().toarray()
 def laplacian(array):
     return buildA(array.shape) * csr_matrix(array.flatten()).transpose().toarray()
-    # return poisson(array.shape, format='csr') * csr_matrix(array.flatten()).transpose().toarray()
-
 
 def setBoundaryCondition(b, dstUnderSrc):
     b[1, :] = dstUnderSrc[1, :]
@@ -111,12 +110,13 @@ def setBoundaryCondition(b, dstUnderSrc):
     return b
 
 
+
 def constructConstVector(mask, mixedGrad, dstUnderSrc, srcLaplacianed, srcShp):
     dstLaplacianed = laplacian(dstUnderSrc)
     b = np.reshape(mask * np.reshape(srcLaplacianed, srcShp) +
                    (1 - mask) * np.reshape(dstLaplacianed, srcShp), srcShp)
-    # b = np.reshape(dstLaplacianed, srcShp)
-    return setBoundaryCondition(b, dstUnderSrc)
+
+    return setBoundaryCondition(b, -dstUnderSrc.astype(np.float64))
 
 
 def fixCoeffUnderBoundaryCondition(coeff, shape):
@@ -145,17 +145,15 @@ def constructCoefficientMat(shape):
 def buildA(im_shape):
     sizey, sizex = im_shape
     A = sp.eye(sizex * sizey, format="csr")
-    A = A * 4.
-    A = A - sp.eye(sizex * sizey, k=1) - sp.eye(sizex * sizey, k=-1)
-    A = A - sp.eye(sizex * sizey, k=-sizex) - sp.eye(sizex * sizey, k=sizex)
+    A = A * -4.
+    A = A + sp.eye(sizex * sizey, k=1) + sp.eye(sizex * sizey, k=-1)
+    A = A + sp.eye(sizex * sizey, k=-sizex) + sp.eye(sizex * sizey, k=sizex)
     for i in range(sizey * sizex):
         if (i % sizex) is (sizex -1) and (i+1 < sizey * sizex):
             A[i,i+1] = 0
             A[i+1, i] = 0
-
-
-
     return A
+
 
 def buildLinearSystem(mask, srcImg, dstUnderSrc, mixedGrad):
     srcLaplacianed = laplacian(srcImg)
