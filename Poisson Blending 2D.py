@@ -191,6 +191,11 @@ def poissonAndNaiveBlending(mask, corner, srcRgb, dstRgb, mixedGrad):
         src = srcRgb[color]
         dst = dstRgb[color]
         dstUnderSrc = cropDstUnderSrc(dst, corner, src.shape)
+        plt.figure('dstUnderSrc image')
+        plt.title('dstUnderSrc')
+        plt.imshow(dstUnderSrc, cmap='gray')
+        plt.show()
+
         a, b = buildLinearSystem(mask, src, dstUnderSrc, mixedGrad)
         x = solveLinearSystem(a, b, b.shape)
         poissonBlended = blend(dst, x, (corner[0] + 1, corner[1] + 1), b.shape, poissonBlended)
